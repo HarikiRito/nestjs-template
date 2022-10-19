@@ -3,8 +3,9 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
-import { SampleModule } from './sample/sample.module';
+import { SampleModule } from './modules/sample/sample.module';
 import * as path from 'path';
+import { dbRoot } from 'src/configs/db';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import * as path from 'path';
       sortSchema: true,
       debug: true,
     }),
+    dbRoot,
     SampleModule,
   ],
   controllers: [AppController],

@@ -1,5 +1,5 @@
 import { Args, Query, Resolver } from '@nestjs/graphql';
-import { Sample } from 'src/sample/models/sample.model';
+import { Sample } from 'src/modules/sample/entities/sample.entity';
 
 @Resolver(() => Sample)
 export class SampleResolver {
