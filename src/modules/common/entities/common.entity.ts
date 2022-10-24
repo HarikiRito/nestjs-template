@@ -4,29 +4,29 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   UpdateDateColumn,
-} from 'typeorm';
-import { Field, ID } from '@nestjs/graphql';
-import { GraphNode } from 'src/modules/common/interfaces/common.interface';
-import { snowflake } from 'src/utils/common';
+} from 'typeorm'
+import { Field, ID, ObjectType } from '@nestjs/graphql'
+import { snowflake } from 'src/utils/common'
 
-export class CommonEntity extends BaseEntity implements GraphNode {
+@ObjectType()
+export class CommonEntity extends BaseEntity {
   @Field(() => ID)
   @Column('bigint', {
     primary: true,
     unsigned: true,
   })
-  id: string;
+  id: string
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt: Date
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt: Date
 
   @DeleteDateColumn({ nullable: true })
-  deletedAt?: Date;
+  deletedAt?: Date
   constructor(data: Record<string, unknown>) {
-    super();
-    Object.assign(this, { id: snowflake.nextId(), ...data });
+    super()
+    Object.assign(this, { id: snowflake.nextId(), ...data })
   }
 }
