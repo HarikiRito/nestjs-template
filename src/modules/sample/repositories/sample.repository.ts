@@ -1,6 +1,6 @@
 import { CommonRepository } from 'src/modules/common/repositories/common.repository'
 import { SampleEntity } from 'src/modules/sample/entities/sample.entity'
-import { Injectable } from '@nestjs/common'
+import { CustomRepository } from 'src/typeorm-ex/typeorm-ex.decorator'
 
-@Injectable()
+@CustomRepository(SampleEntity)
 export class SampleRepository extends CommonRepository<SampleEntity> {}

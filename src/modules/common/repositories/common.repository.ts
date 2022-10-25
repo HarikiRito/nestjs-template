@@ -1,6 +1,5 @@
 import { Repository } from 'typeorm'
 import { PaginationArgs } from 'src/modules/common/dto/common.arg'
-import { Injectable } from '@nestjs/common'
 
 export class CommonRepository<Model> extends Repository<Model> {
   async paginate(args: PaginationArgs) {
