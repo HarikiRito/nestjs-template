@@ -1,5 +1,6 @@
 import {
   BaseEntity,
+  BeforeInsert,
   Column,
   CreateDateColumn,
   DeleteDateColumn,
@@ -25,6 +26,7 @@ export class CommonEntity extends BaseEntity {
 
   @DeleteDateColumn({ nullable: true })
   deletedAt?: Date
+
   constructor(data: Record<string, unknown>) {
     super()
     Object.assign(this, { id: snowflake.nextId(), ...data })

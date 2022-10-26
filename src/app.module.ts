@@ -5,6 +5,7 @@ import { GraphQLModule } from '@nestjs/graphql'
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
 import { SampleModule } from './modules/sample/sample.module'
 import { dbRoot } from 'src/configs/db'
+import { UserModule } from 'src/modules/user/user.module'
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { dbRoot } from 'src/configs/db'
     }),
     dbRoot,
     SampleModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],

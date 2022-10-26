@@ -9,6 +9,6 @@ export const dbRoot = TypeOrmModule.forRoot({
   password: process.env.DATABASE_PASSWORD,
   database: process.env.DATABASE_NAME,
   synchronize: process.env.DATABASE_SYNC === 'true',
-  entities: [`${process.cwd()}/src/**/*.entity.js`, SampleEntity],
+  entities: [`${process.cwd()}/**/*.entity.js`],
   logging: process.env.DATABASE_LOGGING !== 'false',
 })
