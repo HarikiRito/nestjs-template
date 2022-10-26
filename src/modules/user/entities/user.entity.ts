@@ -4,7 +4,7 @@ import { BeforeInsert, Column, Entity } from 'typeorm'
 
 @ObjectType()
 @Entity({
-  name: 'user',
+  name: 'users',
 })
 export class UserEntity extends CommonEntity {
   @Column({ unique: true })

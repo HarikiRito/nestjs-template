@@ -8,5 +8,6 @@ import { TypeormExModule } from 'src/typeorm-ex/typeorm-ex.module'
   controllers: [],
   imports: [TypeormExModule.forCustomRepository([UserRepository])],
   providers: [UserService, UserResolver],
+  exports: [UserService],
 })
 export class UserModule {}
