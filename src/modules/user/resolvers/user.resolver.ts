@@ -7,6 +7,11 @@ import { CreateUserInput } from 'src/modules/user/dtos/user.input'
 export class UserResolver {
   constructor(private readonly userService: UserService) {}
 
+  @Query(() => String)
+  sayHello(): string {
+    return 'Hello World!'
+  }
+
   @Mutation(() => UserEntity)
   async createUser(@Args('input') input: CreateUserInput) {
     return this.userService.createUser(input)

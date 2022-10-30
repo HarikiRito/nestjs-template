@@ -7,6 +7,8 @@ import { SampleModule } from './modules/sample/sample.module'
 import { dbRoot } from 'src/configs/db'
 import { UserModule } from 'src/modules/user/user.module'
 import { AuthModule } from 'src/modules/auth/auth.module'
+import { JwtModule } from '@nestjs/jwt'
+import { jwtSecretKey } from 'src/modules/auth/jwt.constant'
 
 @Module({
   imports: [
