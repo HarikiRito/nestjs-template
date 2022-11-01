@@ -24,18 +24,4 @@ export class UserService {
     })
     return this.userRepo.save(user)
   }
-
-  async loginByUsername(username: string, password: string) {
-    const user = await this.findByUsername(username)
-
-    if (!user || !user.password) {
-      throw new Error('User not found')
-    }
-
-    if (!bcrypt.compareSync(password, user.password)) {
-      throw new Error('User not found')
-    }
-
-    return user
-  }
 }

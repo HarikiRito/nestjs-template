@@ -10,6 +10,6 @@ export class AuthResolver {
 
   @Mutation(() => UserEntity)
   async login(@Args('input') input: LoginInput) {
-    return this.authService.validateUser(input.username, input.password)
+    return this.authService.loginByUsername(input.username, input.password)
   }
 }
