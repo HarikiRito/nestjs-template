@@ -4,4 +4,5 @@ import { InputType } from '@nestjs/graphql'
 export class LoginInput {
   username: string
   password: string
+  deviceId?: string
 }

@@ -17,7 +17,6 @@ import { typeormRepositories } from 'src/typeorm-ex/typeormRepository'
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: jwtSecretKey,
-      signOptions: { expiresIn: '30 days' },
     }),
     typeormRepositories,
   ],
