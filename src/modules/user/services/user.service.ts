@@ -12,6 +12,11 @@ export class UserService {
       username,
     })
   }
+  async findById(id: string) {
+    return this.userRepo.findOneBy({
+      id,
+    })
+  }
 
   async createUser(input: CreateUserInput) {
     const salt = bcrypt.genSaltSync()

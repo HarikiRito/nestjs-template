@@ -21,10 +21,6 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async findOne() {
-    return this.authRepo.find()
-  }
-
   async loginByUsername(input: LoginInput) {
     const user = await this.userService.findByUsername(input.username)
 
@@ -51,7 +47,7 @@ export class AuthService {
       }),
       refreshToken: this.jwtService.sign(payload, {
         ...options,
-        expiresIn: '30d',
+        expiresIn: '60d',
         subject: JwtSubject.RefreshToken,
       }),
     }
@@ -76,18 +72,19 @@ export class AuthService {
       })
     }
 
-    authEntity.accessToken = jwtTokenData.accessToken
-    authEntity.refreshToken = jwtTokenData.refreshToken
-    authEntity.expiresAt = dayjs().add(30, 'day').toDate()
+    this._updateAuthEntityJwtToken(authEntity, jwtTokenData)
     authEntity.deviceId = authData?.deviceId
     authEntity = await this.authRepo.save(authEntity)
-    this.renewAccessToken(jwtTokenData.refreshToken)
     return authEntity
   }
 
   async renewAccessToken(refreshToken: string) {
     const invalidRefreshTokenError = 'Invalid refresh token'
-    const data = this.jwtService.decode(refreshToken) as (JwtPayload & { exp: number; iat: number; sub: string }) | null
+    const data = (await this.jwtService.verify(refreshToken, {
+      ignoreExpiration: false,
+    })) as (JwtPayload & { exp: number; iat: number; sub: string }) | null
+
+    console.log(data)
     if (!data || data.sub !== JwtSubject.RefreshToken || data.exp < dayjs().unix())
       throw new Error(invalidRefreshTokenError)
 
@@ -95,7 +92,9 @@ export class AuthService {
       refreshToken: refreshToken,
     })
 
+    // If user use an invalid refresh token, we will throw an error and removing all the token issue for that user
     if (!authEntity) {
+      await this._revokeAllTokenByUserId(data.id)
       throw new ApolloError(invalidRefreshTokenError)
     }
 
@@ -103,6 +102,26 @@ export class AuthService {
 
     const payload = purgeObject(oldPayload, ['exp', 'iat', 'sub']) as JwtPayload
     const jwtData = this.initAccessToken(payload)
-    // TODO: Update new access token
+    this._updateAuthEntityJwtToken(authEntity, jwtData)
+    await this.authRepo.update(authEntity.id, authEntity)
+    return authEntity
+  }
+
+  private _updateAuthEntityJwtToken(authEntity: AuthEntity, jwtData: { accessToken: string; refreshToken: string }) {
+    authEntity.accessToken = jwtData.accessToken
+    authEntity.refreshToken = jwtData.refreshToken
+    authEntity.expiresAt = dayjs().add(30, 'day').toDate()
+  }
+
+  private async _revokeAllTokenByUserId(id: string) {
+    const authEntities = await this.authRepo.find({
+      select: {
+        id: true,
+      },
+      where: {
+        userId: id,
+      },
+    })
+    await this.authRepo.softRemove(authEntities)
   }
 }
