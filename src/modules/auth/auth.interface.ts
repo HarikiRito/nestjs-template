@@ -5,7 +5,7 @@ import { JwtSubject } from 'src/modules/auth/jwt.constant'
 export type JwtPayload = Pick<UserEntity, 'id' | 'username' | 'email'> & Pick<AuthEntity, 'deviceId'>
 
 export type JwtPayloadWithOption = JwtPayload & {
-  exp?: string
+  exp?: number
   iat?: string
   sub?: string
 }

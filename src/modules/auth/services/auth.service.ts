@@ -12,6 +12,8 @@ import { AuthEntity } from 'src/modules/auth/entities/auth.entity'
 import { LoginInput } from 'src/modules/auth/dtos/auth.input'
 import { ApolloError } from 'apollo-server-express'
 import { purgeObject } from 'src/utils/object'
+import { Context } from '@nestjs/graphql'
+import { GraphQLContext } from 'src/modules/common/decorators/common.decorator'
 
 @Injectable()
 export class AuthService {
@@ -21,7 +23,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async loginByUsername(input: LoginInput) {
+  async loginByUsername(input: LoginInput): Promise<[UserEntity, AuthEntity]> {
     const user = await this.userService.findByUsername(input.username)
 
     if (!user || !user.password) {
@@ -31,11 +33,11 @@ export class AuthService {
     if (!bcrypt.compareSync(input.password, user.password)) {
       throw new Error('User not found')
     }
-    await this.saveAuthToken(user, {
+    const auth = await this.saveAuthToken(user, {
       deviceId: input.deviceId,
     })
 
-    return user
+    return [user, auth]
   }
 
   initAccessToken(payload: JwtPayload, options?: JwtSignOptions) {
@@ -78,13 +80,26 @@ export class AuthService {
     return authEntity
   }
 
+  async saveTokenToCookie(ctx: GraphQLContext, authEntity: AuthEntity) {
+    ctx.res.cookie(JwtSubject.AccessToken, authEntity.accessToken, {
+      httpOnly: true,
+      sameSite: false,
+      expires: dayjs((this.jwtService.decode(authEntity.accessToken) as JwtPayloadWithOption).exp).toDate(),
+    })
+
+    ctx.res.cookie(JwtSubject.RefreshToken, authEntity.refreshToken, {
+      httpOnly: true,
+      sameSite: false,
+      expires: dayjs((this.jwtService.decode(authEntity.refreshToken) as JwtPayloadWithOption).exp).toDate(),
+    })
+  }
+
   async renewAccessToken(refreshToken: string) {
     const invalidRefreshTokenError = 'Invalid refresh token'
     const data = (await this.jwtService.verify(refreshToken, {
       ignoreExpiration: false,
     })) as (JwtPayload & { exp: number; iat: number; sub: string }) | null
 
-    console.log(data)
     if (!data || data.sub !== JwtSubject.RefreshToken || data.exp < dayjs().unix())
       throw new Error(invalidRefreshTokenError)
 

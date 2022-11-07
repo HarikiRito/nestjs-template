@@ -11,3 +11,10 @@ export class GqlJwtAuthGuard extends AuthGuard('jwt') {
     return ctx.req
   }
 }
+@Injectable()
+export class GqlJwtCookieAuthGuard extends AuthGuard('cookie') {
+  getRequest(context: ExecutionContext) {
+    const ctx: GraphQLContext = GqlExecutionContext.create(context).getContext()
+    return ctx.req
+  }
+}

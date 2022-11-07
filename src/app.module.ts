@@ -14,6 +14,20 @@ import { AuthModule } from 'src/modules/auth/auth.module'
       autoSchemaFile: true,
       sortSchema: true,
       debug: true,
+      cors: {
+        credentials: true,
+        origin: true,
+      },
+      context: ({ req, res, connection }: { req: Request; res: Response; connection: any }) => {
+        if (connection) {
+          // check connection for metadata
+          return { req: connection.context as Request, res }
+        } else {
+          // check from req
+          // return new GraphQLContext(req, res);
+          return { req, res }
+        }
+      },
     }),
     dbRoot,
     UserModule,

@@ -9,18 +9,19 @@ import { jwtSecretKey } from 'src/modules/auth/jwt.constant'
 import { UserModule } from 'src/modules/user/user.module'
 import { LocalStrategy } from 'src/modules/auth/strategies/local.strategy'
 import { typeormRepositories } from 'src/typeorm-ex/typeormRepository'
+import { JwtCookieStrategy } from 'src/modules/auth/strategies/jwt_cookie.strategy'
 
 @Module({
   controllers: [],
   imports: [
     UserModule,
-    PassportModule.register({ defaultStrategy: 'jwt' }),
+    PassportModule,
     JwtModule.register({
       secret: jwtSecretKey,
     }),
     typeormRepositories,
   ],
-  providers: [AuthService, UserService, AuthResolver, JwtStrategy],
+  providers: [AuthService, UserService, AuthResolver, JwtStrategy, JwtCookieStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}
