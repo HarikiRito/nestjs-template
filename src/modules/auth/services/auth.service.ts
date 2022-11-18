@@ -83,13 +83,13 @@ export class AuthService {
   saveTokenToCookie(ctx: GraphQLContext, authEntity: AuthEntity) {
     ctx.res.cookie(JwtSubject.AccessToken, authEntity.accessToken, {
       httpOnly: true,
-      sameSite: false,
+      sameSite: true,
       expires: dayjs((this.jwtService.decode(authEntity.accessToken) as JwtPayloadWithOption).exp * 1000).toDate(),
     })
 
     ctx.res.cookie(JwtSubject.RefreshToken, authEntity.refreshToken, {
       httpOnly: true,
-      sameSite: false,
+      sameSite: true,
       expires: dayjs((this.jwtService.decode(authEntity.refreshToken) as JwtPayloadWithOption).exp * 1000).toDate(),
     })
   }

@@ -12,6 +12,7 @@ export const CurrentUser = createParamDecorator<string, GraphQLExecutionContext,
   const [, , ctx] = host.getArgs<_ExecutionContext>()
   return ctx?.req?.user
 })
+
 export function AuthJwt() {
   return applyDecorators(UseGuards(GqlJwtAuthGuard))
 }
