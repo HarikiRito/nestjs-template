@@ -1,11 +1,4 @@
-import {
-  BaseEntity,
-  BeforeInsert,
-  Column,
-  CreateDateColumn,
-  DeleteDateColumn,
-  UpdateDateColumn,
-} from 'typeorm'
+import { BaseEntity, Column, CreateDateColumn, DeleteDateColumn, UpdateDateColumn } from 'typeorm'
 import { Field, ID, ObjectType } from '@nestjs/graphql'
 import { snowflake } from 'src/utils/common'
 

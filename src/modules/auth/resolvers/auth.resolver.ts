@@ -4,7 +4,7 @@ import { AuthService } from 'src/modules/auth/services/auth.service'
 import { LoginInput } from 'src/modules/auth/dtos/auth.input'
 import { UserEntity } from 'src/modules/user/entities/user.entity'
 import { UserService } from 'src/modules/user/services/user.service'
-import { AuthJwt, AuthJwtCookie, CurrentUser, GraphQLContext } from 'src/modules/common/decorators/common.decorator'
+import { AuthJwtMixed, CurrentUser, GraphQLContext } from 'src/modules/common/decorators/common.decorator'
 
 @Resolver(() => AuthEntity)
 export class AuthResolver {
@@ -12,7 +12,7 @@ export class AuthResolver {
   @Query(() => UserEntity, {
     nullable: true,
   })
-  @AuthJwtCookie()
+  @AuthJwtMixed()
   me(@CurrentUser() user: UserEntity, @Context() ctx: GraphQLContext) {
     return user
   }

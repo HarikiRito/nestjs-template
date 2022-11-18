@@ -1,8 +1,9 @@
-import { applyDecorators, createParamDecorator, ExecutionContext, UseGuards } from '@nestjs/common'
-import { GqlJwtAuthGuard, GqlJwtCookieAuthGuard } from 'src/modules/auth/guards/jwt.guard'
+import { applyDecorators, createParamDecorator, UseGuards } from '@nestjs/common'
+import { GqlJwtAuthGuard, GqlJwtCookieAuthGuard, GqlJwtMixedAuthGuard } from 'src/modules/auth/guards/jwt.guard'
 import { GraphQLExecutionContext } from '@nestjs/graphql'
 import { GraphQLResolveInfo } from 'graphql/type'
 import { Request, Response } from 'express'
+
 export interface GraphQLContext {
   req: Request
   res: Response
@@ -19,4 +20,8 @@ export function AuthJwt() {
 
 export function AuthJwtCookie() {
   return applyDecorators(UseGuards(GqlJwtCookieAuthGuard))
+}
+
+export function AuthJwtMixed() {
+  return applyDecorators(UseGuards(GqlJwtMixedAuthGuard))
 }

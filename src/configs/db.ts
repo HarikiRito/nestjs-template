@@ -1,5 +1,4 @@
 import { TypeOrmModule } from '@nestjs/typeorm'
-import { SampleEntity } from 'src/modules/sample/entities/sample.entity'
 
 export const dbRoot = TypeOrmModule.forRoot({
   type: 'postgres',
@@ -11,4 +10,5 @@ export const dbRoot = TypeOrmModule.forRoot({
   synchronize: process.env.DATABASE_SYNC === 'true',
   entities: [`${process.cwd()}/**/*.entity.js`],
   logging: process.env.DATABASE_LOGGING !== 'false',
+  cache: true,
 })

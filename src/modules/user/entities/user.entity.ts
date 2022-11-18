@@ -1,6 +1,6 @@
 import { HideField, ObjectType } from '@nestjs/graphql'
 import { CommonEntity } from 'src/modules/common/entities/common.entity'
-import { BeforeInsert, Column, Entity } from 'typeorm'
+import { Column, Entity } from 'typeorm'
 
 @ObjectType()
 @Entity({

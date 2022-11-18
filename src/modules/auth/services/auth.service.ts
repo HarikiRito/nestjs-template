@@ -12,8 +12,10 @@ import { AuthEntity } from 'src/modules/auth/entities/auth.entity'
 import { LoginInput } from 'src/modules/auth/dtos/auth.input'
 import { ApolloError } from 'apollo-server-express'
 import { purgeObject } from 'src/utils/object'
-import { Context } from '@nestjs/graphql'
 import { GraphQLContext } from 'src/modules/common/decorators/common.decorator'
+import { Platform } from 'src/modules/auth/dtos/auth.enum'
+import { AuthCacheKey } from 'src/modules/auth/enums/auth.cache'
+import { DataSource } from 'typeorm'
 
 @Injectable()
 export class AuthService {
@@ -21,20 +23,18 @@ export class AuthService {
     private readonly authRepo: AuthRepository,
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
+    private dataSource: DataSource,
   ) {}
 
   async loginByUsername(input: LoginInput): Promise<[UserEntity, AuthEntity]> {
     const user = await this.userService.findByUsername(input.username)
 
-    if (!user || !user.password) {
-      throw new Error('User not found')
-    }
-
-    if (!bcrypt.compareSync(input.password, user.password)) {
+    if (!bcrypt.compareSync(input.password, user?.password || '')) {
       throw new Error('User not found')
     }
     const auth = await this.saveAuthToken(user, {
       deviceId: input.deviceId,
+      platform: input.platform,
     })
 
     return [user, auth]
@@ -55,28 +55,44 @@ export class AuthService {
     }
   }
 
-  async saveAuthToken(user: UserEntity, authData?: Pick<AuthEntity, 'deviceId'>) {
+  async saveAuthToken(user: UserEntity, authData: Pick<AuthEntity, 'deviceId'> & { platform: Platform }) {
     const jwtTokenData = this.initAccessToken({
       username: user.username,
       id: user.id,
       email: user.email,
       deviceId: authData?.deviceId,
+      platform: authData.platform,
     })
 
-    let authEntity = await this.authRepo.findOneBy({
-      userId: user.id,
-      deviceId: authData?.deviceId,
-    })
-
-    if (!authEntity) {
+    let authEntity: AuthEntity
+    if (authData.platform === Platform.Web) {
+      // Create new token if user login from web
       authEntity = this.authRepo.create({
         userId: user.id,
       })
     }
 
+    if (authData.platform === Platform.Mobile) {
+      if (!authData.deviceId) throw new ApolloError('Device id is required')
+      // Update token if user login from mobile with the same device id
+      authEntity = await this.authRepo.findOneBy({
+        userId: user.id,
+        deviceId: authData?.deviceId,
+      })
+
+      if (!authEntity) {
+        authEntity = this.authRepo.create({
+          userId: user.id,
+        })
+      }
+
+      authEntity.deviceId = authData?.deviceId
+    }
+
     this._updateAuthEntityJwtToken(authEntity, jwtTokenData)
-    authEntity.deviceId = authData?.deviceId
     authEntity = await this.authRepo.save(authEntity)
+    await this._removeQueryCache()
+
     return authEntity
   }
 
@@ -119,7 +135,20 @@ export class AuthService {
     const jwtData = this.initAccessToken(payload)
     this._updateAuthEntityJwtToken(authEntity, jwtData)
     await this.authRepo.update(authEntity.id, authEntity)
+    await this._removeQueryCache()
     return authEntity
+  }
+
+  async getAuthEntityByAccessToken(token: string) {
+    return this.authRepo.findOne({
+      where: {
+        accessToken: token,
+      },
+      cache: {
+        id: AuthCacheKey.QueryAccessToken,
+        milliseconds: 10 * 1000 * 60,
+      },
+    })
   }
 
   private _updateAuthEntityJwtToken(authEntity: AuthEntity, jwtData: { accessToken: string; refreshToken: string }) {
@@ -137,6 +166,11 @@ export class AuthService {
         userId: id,
       },
     })
-    await this.authRepo.softRemove(authEntities)
+    await this.authRepo.remove(authEntities)
+    await this._removeQueryCache()
+  }
+
+  private _removeQueryCache() {
+    return this.dataSource.queryResultCache?.remove([AuthCacheKey.QueryAccessToken])
   }
 }
