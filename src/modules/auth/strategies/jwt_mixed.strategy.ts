@@ -8,6 +8,7 @@ import { JwtSubject } from 'src/modules/auth/jwt.constant'
 import { JwtPayloadWithOption } from 'src/modules/auth/auth.interface'
 import { Request } from 'express'
 import { JwtService } from '@nestjs/jwt'
+import dayjs from 'dayjs'
 
 @Injectable()
 export class JwtMixedStrategy extends PassportStrategy(Strategy, 'mixed') {
@@ -38,6 +39,10 @@ export class JwtMixedStrategy extends PassportStrategy(Strategy, 'mixed') {
     const authEntity = await this.authService.getAuthEntityByAccessToken(accessToken)
 
     if (!authEntity) {
+      throw new UnauthorizedException()
+    }
+
+    if (dayjs(payload.exp * 1000).isBefore(dayjs())) {
       throw new UnauthorizedException()
     }
 
