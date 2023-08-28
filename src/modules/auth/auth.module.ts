@@ -9,8 +9,6 @@ import { jwtSecretKey } from 'src/modules/auth/jwt.constant'
 import { UserModule } from 'src/modules/user/user.module'
 import { JwtCookieStrategy } from 'src/modules/auth/strategies/jwt_cookie.strategy'
 import { JwtMixedStrategy } from 'src/modules/auth/strategies/jwt_mixed.strategy'
-import { AuthRepository } from './repositories/auth.repository'
-import { UserRepository } from '../user/repositories/user.repository'
 import { OrmModule } from '../orm/orm.module'
 
 @Module({

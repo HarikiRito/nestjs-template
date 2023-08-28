@@ -1,6 +1,9 @@
 import { MikroOrmModule } from '@mikro-orm/nestjs'
-import { defineConfig } from '@mikro-orm/core'
-export const mikroOrmRoot = MikroOrmModule.forRoot({
+import { defineConfig, Options } from '@mikro-orm/core'
+import { Logger } from '@nestjs/common'
+
+const logger = new Logger('MikroORM')
+const config: Options = {
   entities: [`./dist/**/entities/*`],
   entitiesTs: [`./src/**/entities/*`],
   type: 'postgresql',
@@ -9,4 +12,9 @@ export const mikroOrmRoot = MikroOrmModule.forRoot({
   host: process.env.DATABASE_HOST,
   user: process.env.DATABASE_USER,
   password: process.env.DATABASE_PASSWORD,
-})
+  logger: logger.log.bind(logger),
+}
+
+export const mikroOrmRoot = MikroOrmModule.forRoot(config)
+
+export default defineConfig(config)
