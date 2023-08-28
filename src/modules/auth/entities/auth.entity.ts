@@ -4,9 +4,9 @@ import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm'
 import { UserEntity } from 'src/modules/user/entities/user.entity'
 
 @ObjectType()
-@Entity({
-  name: 'auths',
-})
+// @Entity({
+//   // name: 'auths',
+// })
 export class AuthEntity extends CommonEntity {
   @Column('bigint')
   userId: string

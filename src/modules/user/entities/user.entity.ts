@@ -3,9 +3,9 @@ import { CommonEntity } from 'src/modules/common/entities/common.entity'
 import { Column, Entity } from 'typeorm'
 
 @ObjectType()
-@Entity({
-  name: 'users',
-})
+// @Entity({
+//   name: 'users',
+// })
 export class UserEntity extends CommonEntity {
   @Column({ unique: true })
   username: string

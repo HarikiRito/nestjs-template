@@ -14,11 +14,6 @@ import { Request } from 'express'
       driver: ApolloDriver,
       autoSchemaFile: true,
       sortSchema: true,
-      debug: true,
-      cors: {
-        credentials: true,
-        origin: true,
-      },
       context: ({ req, res, connection }: { req: Request; res: Response; connection: any }) => {
         if (connection) {
           // check connection for metadata
