@@ -1,29 +1,34 @@
 import { ObjectType } from '@nestjs/graphql'
 import { CommonEntity } from 'src/modules/common/entities/common.entity'
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm'
-import { UserEntity } from 'src/modules/user/entities/user.entity'
+import { User } from 'src/modules/user/entities/user.entity'
+import { Property, Entity, ManyToOne, EntityRepositoryType } from '@mikro-orm/core'
+import { AuthRepository } from '../repositories/auth.repository'
 
 @ObjectType()
-// @Entity({
-//   // name: 'auths',
-// })
-export class AuthEntity extends CommonEntity {
-  @Column('bigint')
+@Entity({
+  tableName: 'auths',
+  customRepository: () => AuthRepository,
+})
+export class Auth extends CommonEntity {
+  @Property({
+    type: 'bigint',
+  })
   userId: string
 
-  @Column({ nullable: true })
+  @Property({ nullable: true })
   deviceId?: string
 
-  @Column()
+  @Property()
   accessToken: string
 
-  @Column()
+  @Property()
   refreshToken: string
 
-  @Column({ nullable: true })
+  @Property({ nullable: true })
   expiresAt?: Date
 
-  @ManyToOne(() => UserEntity, (users) => users.id)
-  @JoinColumn({ name: 'userId' })
-  user: UserEntity
+  @ManyToOne(() => User)
+  user: User
+
+  // [EntityRepositoryType]?: AuthRepository
 }

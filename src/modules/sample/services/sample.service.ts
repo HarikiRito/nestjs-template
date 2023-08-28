@@ -6,6 +6,6 @@ export class SampleService {
   constructor(private readonly sampleRepo: SampleRepository) {}
 
   async findOne() {
-    return this.sampleRepo.find()
+    return this.sampleRepo.find({})
   }
 }

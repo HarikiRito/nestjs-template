@@ -5,17 +5,15 @@ import { UserService } from 'src/modules/user/services/user.service'
 import { JwtSignOptions } from '@nestjs/jwt/dist/interfaces'
 import { JwtPayload, JwtPayloadWithOption } from 'src/modules/auth/auth.interface'
 import bcrypt from 'bcryptjs'
-import { UserEntity } from 'src/modules/user/entities/user.entity'
+import { User } from 'src/modules/user/entities/user.entity'
 import dayjs from 'dayjs'
 import { JwtSubject } from 'src/modules/auth/jwt.constant'
-import { AuthEntity } from 'src/modules/auth/entities/auth.entity'
+import { Auth } from 'src/modules/auth/entities/auth.entity'
 import { LoginInput } from 'src/modules/auth/dtos/auth.input'
 import { ApolloError } from 'apollo-server-express'
 import { purgeObject } from 'src/utils/object'
 import { GraphQLContext } from 'src/modules/common/decorators/common.decorator'
 import { Platform } from 'src/modules/auth/dtos/auth.enum'
-import { AuthCacheKey } from 'src/modules/auth/enums/auth.cache'
-import { DataSource } from 'typeorm'
 
 @Injectable()
 export class AuthService {
@@ -23,10 +21,9 @@ export class AuthService {
     private readonly authRepo: AuthRepository,
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
-    private dataSource: DataSource,
   ) {}
 
-  async loginByUsername(input: LoginInput): Promise<[UserEntity, AuthEntity]> {
+  async loginByUsername(input: LoginInput): Promise<[User, Auth]> {
     const user = await this.userService.findByUsername(input.username)
 
     if (!bcrypt.compareSync(input.password, user?.password || '')) {
@@ -55,7 +52,7 @@ export class AuthService {
     }
   }
 
-  async saveAuthToken(user: UserEntity, authData: Pick<AuthEntity, 'deviceId'> & { platform: Platform }) {
+  async saveAuthToken(user: User, authData: Pick<Auth, 'deviceId'> & { platform: Platform }) {
     const jwtTokenData = this.initAccessToken({
       username: user.username,
       id: user.id,
@@ -64,7 +61,7 @@ export class AuthService {
       platform: authData.platform,
     })
 
-    let authEntity: AuthEntity
+    let authEntity: Auth
     if (authData.platform === Platform.Web) {
       // Create new token if user login from web
       authEntity = this.authRepo.create({
@@ -75,7 +72,7 @@ export class AuthService {
     if (authData.platform === Platform.Mobile) {
       if (!authData.deviceId) throw new ApolloError('Device id is required')
       // Update token if user login from mobile with the same device id
-      authEntity = await this.authRepo.findOneBy({
+      authEntity = await this.authRepo.findOne({
         userId: user.id,
         deviceId: authData?.deviceId,
       })
@@ -90,13 +87,12 @@ export class AuthService {
     }
 
     this._updateAuthEntityJwtToken(authEntity, jwtTokenData)
-    authEntity = await this.authRepo.save(authEntity)
-    await this._removeQueryCache()
+    authEntity = await this.authRepo.upsert(authEntity)
 
     return authEntity
   }
 
-  saveTokenToCookie(ctx: GraphQLContext, authEntity: AuthEntity) {
+  saveTokenToCookie(ctx: GraphQLContext, authEntity: Auth) {
     ctx.res.cookie(JwtSubject.AccessToken, authEntity.accessToken, {
       httpOnly: true,
       sameSite: true,
@@ -119,7 +115,7 @@ export class AuthService {
     if (!data || data.sub !== JwtSubject.RefreshToken || data.exp < dayjs().unix())
       throw new Error(invalidRefreshTokenError)
 
-    const authEntity = await this.authRepo.findOneBy({
+    const authEntity = await this.authRepo.findOne({
       refreshToken: refreshToken,
     })
 
@@ -134,24 +130,17 @@ export class AuthService {
     const payload = purgeObject(oldPayload, ['exp', 'iat', 'sub']) as JwtPayload
     const jwtData = this.initAccessToken(payload)
     this._updateAuthEntityJwtToken(authEntity, jwtData)
-    await this.authRepo.update(authEntity.id, authEntity)
-    await this._removeQueryCache()
+    await this.authRepo.nativeUpdate(authEntity.id, authEntity)
     return authEntity
   }
 
   async getAuthEntityByAccessToken(token: string) {
     return this.authRepo.findOne({
-      where: {
-        accessToken: token,
-      },
-      cache: {
-        id: AuthCacheKey.QueryAccessToken,
-        milliseconds: 10 * 1000 * 60,
-      },
+      accessToken: token,
     })
   }
 
-  private _updateAuthEntityJwtToken(authEntity: AuthEntity, jwtData: { accessToken: string; refreshToken: string }) {
+  private _updateAuthEntityJwtToken(authEntity: Auth, jwtData: { accessToken: string; refreshToken: string }) {
     authEntity.accessToken = jwtData.accessToken
     authEntity.refreshToken = jwtData.refreshToken
     authEntity.expiresAt = dayjs().add(30, 'day').toDate()
@@ -159,18 +148,8 @@ export class AuthService {
 
   private async _revokeAllTokenByUserId(id: string) {
     const authEntities = await this.authRepo.find({
-      select: {
-        id: true,
-      },
-      where: {
-        userId: id,
-      },
+      userId: id,
     })
-    await this.authRepo.remove(authEntities)
-    await this._removeQueryCache()
-  }
-
-  private _removeQueryCache() {
-    return this.dataSource.queryResultCache?.remove([AuthCacheKey.QueryAccessToken])
+    await this.authRepo.nativeDelete(authEntities)
   }
 }

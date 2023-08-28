@@ -9,7 +9,10 @@ import { Request } from 'express'
 
 @Injectable()
 export class JwtCookieStrategy extends PassportStrategy(Strategy, 'cookie') {
-  constructor(private readonly userService: UserService, private readonly authService: AuthService) {
+  constructor(
+    private readonly userService: UserService,
+    private readonly authService: AuthService,
+  ) {
     super({
       jwtFromRequest: (req: Request) => {
         return req.cookies.token as string | undefined

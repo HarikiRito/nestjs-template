@@ -1,9 +1,9 @@
 import { ObjectType } from '@nestjs/graphql'
 import { CommonEntity } from 'src/modules/common/entities/common.entity'
-import { Entity } from 'typeorm'
+import { Entity } from '@mikro-orm/core'
 
 @ObjectType()
-// @Entity({
-//   name: 'samples',
-// })
-export class SampleEntity extends CommonEntity {}
+@Entity({
+  tableName: 'samples',
+})
+export class Sample extends CommonEntity {}

@@ -1,19 +1,22 @@
 import bcrypt from 'bcryptjs'
 import { Injectable } from '@nestjs/common'
-import { UserRepository } from 'src/modules/user/repositories/user.repository'
 import { CreateUserInput } from 'src/modules/user/dtos/user.input'
+import { InjectRepository } from '@mikro-orm/nestjs'
+import { User } from '../entities/user.entity'
+import { EntityRepository } from '@mikro-orm/core'
+import { UserRepository } from '../repositories/user.repository'
 
 @Injectable()
 export class UserService {
   constructor(private readonly userRepo: UserRepository) {}
 
   async findByUsername(username: string) {
-    return this.userRepo.findOneBy({
+    return this.userRepo.findOne({
       username,
     })
   }
   async findById(id: string) {
-    return this.userRepo.findOneBy({
+    return this.userRepo.findOne({
       id,
     })
   }
@@ -27,6 +30,6 @@ export class UserService {
       email: input.email,
       passwordSalt: salt,
     })
-    return this.userRepo.save(user)
+    return this.userRepo.upsert(user)
   }
 }

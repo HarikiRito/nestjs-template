@@ -1,27 +1,27 @@
-import { BaseEntity, Column, CreateDateColumn, DeleteDateColumn, UpdateDateColumn } from 'typeorm'
 import { Field, ID, ObjectType } from '@nestjs/graphql'
-import { snowflake } from 'src/utils/common'
+import { Property } from '@mikro-orm/core'
+import { snowflake } from '../../../utils/common'
 
 @ObjectType()
-export class CommonEntity extends BaseEntity {
+export class CommonEntity {
   @Field(() => ID)
-  @Column('bigint', {
+  @Property({
+    type: 'bigint',
     primary: true,
     unsigned: true,
   })
   id: string
 
-  @CreateDateColumn()
-  createdAt: Date
+  @Property({ type: 'date' })
+  createdAt: Date = new Date()
 
-  @UpdateDateColumn()
-  updatedAt: Date
+  @Property({ type: 'date', onUpdate: () => new Date() })
+  updatedAt: Date = new Date()
 
-  @DeleteDateColumn({ nullable: true })
+  @Property({ nullable: true })
   deletedAt?: Date
 
-  constructor(data: Record<string, unknown>) {
-    super()
-    Object.assign(this, { id: snowflake.nextId(), ...data })
+  constructor() {
+    this.id = snowflake.nextId()
   }
 }

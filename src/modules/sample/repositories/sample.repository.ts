@@ -1,6 +1,4 @@
 import { CommonRepository } from 'src/modules/common/repositories/common.repository'
-import { SampleEntity } from 'src/modules/sample/entities/sample.entity'
-import { CustomRepository } from 'src/typeorm-ex/typeorm-ex.decorator'
+import { Sample } from 'src/modules/sample/entities/sample.entity'
 
-@CustomRepository(SampleEntity)
-export class SampleRepository extends CommonRepository<SampleEntity> {}
+export class SampleRepository extends CommonRepository<Sample> {}

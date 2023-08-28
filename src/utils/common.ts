@@ -2,5 +2,5 @@ import Sonyflake, { Epoch } from 'sonyflake'
 
 export const snowflake = new Sonyflake({
   machineId: 1,
-  epoch: Epoch.TWITTER, // timestamp
+  epoch: Epoch.DISCORD, // timestamp
 })
