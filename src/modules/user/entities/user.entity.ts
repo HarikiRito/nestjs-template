@@ -1,6 +1,6 @@
 import { HideField, ObjectType } from '@nestjs/graphql'
 import { CommonEntity } from 'src/modules/common/entities/common.entity'
-import { Entity, Property, EntityRepositoryType } from '@mikro-orm/core'
+import { Entity, Property, Unique } from '@mikro-orm/core'
 import { UserRepository } from '../repositories/user.repository'
 
 @ObjectType()
@@ -12,7 +12,7 @@ export class User extends CommonEntity {
   @Property()
   username: string
 
-  @Property()
+  @Property({ nullable: true })
   email?: string
 
   @HideField()
