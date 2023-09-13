@@ -8,4 +8,4 @@ import { SampleRepository } from '../repositories/sample.repository'
   tableName: 'samples',
   repository: () => SampleRepository,
 })
-export class Sample extends CommonEntity {}
+export class SampleEntity extends CommonEntity {}

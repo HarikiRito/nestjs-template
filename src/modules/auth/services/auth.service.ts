@@ -5,10 +5,10 @@ import { UserService } from 'src/modules/user/services/user.service'
 import { JwtSignOptions } from '@nestjs/jwt/dist/interfaces'
 import { JwtPayload, JwtPayloadWithOption } from 'src/modules/auth/auth.interface'
 import bcrypt from 'bcryptjs'
-import { User } from 'src/modules/user/entities/user.entity'
+import { UserEntity } from 'src/modules/user/entities/user.entity'
 import dayjs from 'dayjs'
 import { JwtSubject } from 'src/modules/auth/jwt.constant'
-import { Auth } from 'src/modules/auth/entities/auth.entity'
+import { AuthEntity } from 'src/modules/auth/entities/auth.entity'
 import { LoginInput } from 'src/modules/auth/dtos/auth.input'
 import { ApolloError } from 'apollo-server-express'
 import { purgeObject } from 'src/utils/object'
@@ -23,7 +23,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async loginByUsername(input: LoginInput): Promise<[User, Auth]> {
+  async loginByUsername(input: LoginInput): Promise<[UserEntity, AuthEntity]> {
     const user = await this.userService.findByUsername(input.username)
 
     if (!bcrypt.compareSync(input.password, user?.password || '')) {
@@ -52,7 +52,7 @@ export class AuthService {
     }
   }
 
-  async saveAuthToken(user: User, authData: Pick<Auth, 'deviceId'> & { platform: Platform }) {
+  async saveAuthToken(user: UserEntity, authData: Pick<AuthEntity, 'deviceId'> & { platform: Platform }) {
     const jwtTokenData = this.initAccessToken({
       username: user.username,
       id: user.id,
@@ -61,7 +61,7 @@ export class AuthService {
       platform: authData.platform,
     })
 
-    let authEntity: Auth
+    let authEntity: AuthEntity
     if (authData.platform === Platform.Web) {
       // Create new token if user login from web
       authEntity = this.authRepo.create({
@@ -92,7 +92,7 @@ export class AuthService {
     return authEntity
   }
 
-  saveTokenToCookie(ctx: GraphQLContext, authEntity: Auth) {
+  saveTokenToCookie(ctx: GraphQLContext, authEntity: AuthEntity) {
     ctx.res.cookie(JwtSubject.AccessToken, authEntity.accessToken, {
       httpOnly: true,
       sameSite: true,
@@ -140,7 +140,7 @@ export class AuthService {
     })
   }
 
-  private _updateAuthEntityJwtToken(authEntity: Auth, jwtData: { accessToken: string; refreshToken: string }) {
+  private _updateAuthEntityJwtToken(authEntity: AuthEntity, jwtData: { accessToken: string; refreshToken: string }) {
     authEntity.accessToken = jwtData.accessToken
     authEntity.refreshToken = jwtData.refreshToken
     authEntity.expiresAt = dayjs().add(30, 'day').toDate()

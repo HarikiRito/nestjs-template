@@ -1,4 +1,4 @@
 import { CommonRepository } from 'src/modules/common/repositories/common.repository'
-import { Auth } from 'src/modules/auth/entities/auth.entity'
+import { AuthEntity } from 'src/modules/auth/entities/auth.entity'
 
-export class AuthRepository extends CommonRepository<Auth> {}
+export class AuthRepository extends CommonRepository<AuthEntity> {}

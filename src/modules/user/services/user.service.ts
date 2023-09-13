@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs'
 import { Injectable } from '@nestjs/common'
 import { CreateUserInput } from 'src/modules/user/dtos/user.input'
 import { InjectRepository } from '@mikro-orm/nestjs'
-import { User } from '../entities/user.entity'
+import { UserEntity } from '../entities/user.entity'
 import { EntityRepository, EntityManager } from '@mikro-orm/core'
 import { UserRepository } from '../repositories/user.repository'
 import { goAwaited } from '../../../utils/common'
@@ -30,7 +30,7 @@ export class UserService {
     const salt = bcrypt.genSaltSync()
     input.password = bcrypt.hashSync(input.password, salt)
 
-    const user = this.em.assign(new User(), {
+    const user = this.em.assign(new UserEntity(), {
       username: input.username,
       password: input.password,
       email: input.email,

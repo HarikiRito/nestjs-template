@@ -1,4 +1,4 @@
 import { CommonRepository } from 'src/modules/common/repositories/common.repository'
-import { Sample } from 'src/modules/sample/entities/sample.entity'
+import { SampleEntity } from 'src/modules/sample/entities/sample.entity'
 
-export class SampleRepository extends CommonRepository<Sample> {}
+export class SampleRepository extends CommonRepository<SampleEntity> {}
