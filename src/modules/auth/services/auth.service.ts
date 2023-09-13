@@ -41,7 +41,7 @@ export class AuthService {
     return {
       accessToken: this.jwtService.sign(payload, {
         ...options,
-        expiresIn: '30d',
+        expiresIn: '14d',
         subject: JwtSubject.AccessToken,
       }),
       refreshToken: this.jwtService.sign(payload, {
@@ -65,7 +65,7 @@ export class AuthService {
     if (authData.platform === Platform.Web) {
       // Create new token if user login from web
       authEntity = this.authRepo.create({
-        userId: user.id,
+        user: user,
       })
     }
 
@@ -73,13 +73,13 @@ export class AuthService {
       if (!authData.deviceId) throw new ApolloError('Device id is required')
       // Update token if user login from mobile with the same device id
       authEntity = await this.authRepo.findOne({
-        userId: user.id,
+        user: user,
         deviceId: authData?.deviceId,
       })
 
       if (!authEntity) {
         authEntity = this.authRepo.create({
-          userId: user.id,
+          user: user,
         })
       }
 
@@ -121,7 +121,7 @@ export class AuthService {
 
     // If user use an invalid refresh token, we will throw an error and removing all the token issue for that user
     if (!authEntity) {
-      await this._revokeAllTokenByUserId(data.id)
+      // await this._revokeAllTokenByUserId(data.id)
       throw new ApolloError(invalidRefreshTokenError)
     }
 
@@ -148,7 +148,9 @@ export class AuthService {
 
   private async _revokeAllTokenByUserId(id: string) {
     const authEntities = await this.authRepo.find({
-      userId: id,
+      user: {
+        id: id,
+      },
     })
     await this.authRepo.nativeDelete(authEntities)
   }

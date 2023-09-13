@@ -6,7 +6,7 @@ import { UserRepository } from '../repositories/user.repository'
 @ObjectType()
 @Entity({
   tableName: 'users',
-  customRepository: () => UserRepository,
+  repository: () => UserRepository,
 })
 export class User extends CommonEntity {
   @Property()
