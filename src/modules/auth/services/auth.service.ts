@@ -23,8 +23,8 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async loginByUsername(input: LoginInput): Promise<[UserEntity, AuthEntity]> {
-    const user = await this.userService.findByUsername(input.username)
+  async loginByEmail(input: LoginInput): Promise<[UserEntity, AuthEntity]> {
+    const user = await this.userService.findByEmail(input.email)
 
     if (!bcrypt.compareSync(input.password, user?.password || '')) {
       throw new Error('User not found')

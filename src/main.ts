@@ -14,6 +14,6 @@ async function bootstrap() {
   app.use(cookieParser())
   app.use(compression())
   app.useGlobalPipes(new ValidationPipe())
-  await app.listen(PORT)
+  await app.listen(PORT, '0.0.0.0')
 }
 bootstrap()

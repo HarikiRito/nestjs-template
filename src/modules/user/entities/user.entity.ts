@@ -10,11 +10,11 @@ import { AuthEntity } from '../../auth/entities/auth.entity'
   repository: () => UserRepository,
 })
 export class UserEntity extends CommonEntity {
-  @Property()
-  username: string
-
   @Property({ nullable: true })
-  email?: string
+  username?: string
+
+  @Property()
+  email: string
 
   @HideField()
   @Property()

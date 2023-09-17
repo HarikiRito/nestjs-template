@@ -20,6 +20,12 @@ export class UserService {
       username,
     })
   }
+
+  async findByEmail(email: string) {
+    return this.userRepo.findOne({
+      email,
+    })
+  }
   async findById(id: string) {
     return this.userRepo.findOne({
       id,
@@ -37,7 +43,9 @@ export class UserService {
       passwordSalt: salt,
     })
 
-    const existingUser = await this.findByUsername(input.username)
+    const existingUser = await this.userRepo.findOne({
+      email: input.email,
+    })
 
     if (existingUser) {
       throw new GraphQLError('Username already exists')

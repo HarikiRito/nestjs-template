@@ -21,7 +21,7 @@ export class AuthResolver {
   }
   @Mutation(() => AuthEntity)
   async login(@Args('input') input: LoginInput, @Context() ctx: GraphQLContext) {
-    const [user, auth] = await this.authService.loginByUsername(input)
+    const [user, auth] = await this.authService.loginByEmail(input)
     this.authService.saveTokenToCookie(ctx, auth)
     return auth
   }
