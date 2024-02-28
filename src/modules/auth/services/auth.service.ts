@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { AuthRepository } from 'src/modules/auth/repositories/auth.repository'
 import { UserService } from 'src/modules/user/services/user.service'
@@ -14,20 +14,22 @@ import { ApolloError } from 'apollo-server-express'
 import { purgeObject } from 'src/utils/object'
 import { GraphQLContext } from 'src/modules/common/decorators/common.decorator'
 import { Platform } from 'src/modules/auth/dtos/auth.enum'
-import { AuthCacheKey } from 'src/modules/auth/enums/auth.cache'
-import { DataSource } from 'typeorm'
+import { UserRepository } from '../../user/repositories/user.repository'
+import { ExtractJwt } from 'passport-jwt'
+import { EntityManager } from '@mikro-orm/core'
 
 @Injectable()
 export class AuthService {
   constructor(
+    private readonly em: EntityManager,
     private readonly authRepo: AuthRepository,
+    private readonly userRepo: UserRepository,
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
-    private dataSource: DataSource,
   ) {}
 
-  async loginByUsername(input: LoginInput): Promise<[UserEntity, AuthEntity]> {
-    const user = await this.userService.findByUsername(input.username)
+  async loginByEmail(input: LoginInput): Promise<[UserEntity, AuthEntity]> {
+    const user = await this.userService.findByEmail(input.email)
 
     if (!bcrypt.compareSync(input.password, user?.password || '')) {
       throw new Error('User not found')
@@ -44,7 +46,7 @@ export class AuthService {
     return {
       accessToken: this.jwtService.sign(payload, {
         ...options,
-        expiresIn: '30d',
+        expiresIn: '14d',
         subject: JwtSubject.AccessToken,
       }),
       refreshToken: this.jwtService.sign(payload, {
@@ -68,21 +70,21 @@ export class AuthService {
     if (authData.platform === Platform.Web) {
       // Create new token if user login from web
       authEntity = this.authRepo.create({
-        userId: user.id,
+        user: user,
       })
     }
 
     if (authData.platform === Platform.Mobile) {
       if (!authData.deviceId) throw new ApolloError('Device id is required')
       // Update token if user login from mobile with the same device id
-      authEntity = await this.authRepo.findOneBy({
-        userId: user.id,
+      authEntity = await this.authRepo.findOne({
+        user: user,
         deviceId: authData?.deviceId,
       })
 
       if (!authEntity) {
         authEntity = this.authRepo.create({
-          userId: user.id,
+          user: user,
         })
       }
 
@@ -90,8 +92,7 @@ export class AuthService {
     }
 
     this._updateAuthEntityJwtToken(authEntity, jwtTokenData)
-    authEntity = await this.authRepo.save(authEntity)
-    await this._removeQueryCache()
+    authEntity = await this.authRepo.upsert(authEntity)
 
     return authEntity
   }
@@ -119,13 +120,13 @@ export class AuthService {
     if (!data || data.sub !== JwtSubject.RefreshToken || data.exp < dayjs().unix())
       throw new Error(invalidRefreshTokenError)
 
-    const authEntity = await this.authRepo.findOneBy({
+    const authEntity = await this.authRepo.findOne({
       refreshToken: refreshToken,
     })
 
-    // If user use an invalid refresh token, we will throw an error and removing all the token issue for that user
+    // If user uses an invalid refresh token, we will throw an error and removing all the token issue for that user
     if (!authEntity) {
-      await this._revokeAllTokenByUserId(data.id)
+      // await this._revokeAllTokenByUserId(data.id)
       throw new ApolloError(invalidRefreshTokenError)
     }
 
@@ -134,20 +135,13 @@ export class AuthService {
     const payload = purgeObject(oldPayload, ['exp', 'iat', 'sub']) as JwtPayload
     const jwtData = this.initAccessToken(payload)
     this._updateAuthEntityJwtToken(authEntity, jwtData)
-    await this.authRepo.update(authEntity.id, authEntity)
-    await this._removeQueryCache()
+    await this.authRepo.nativeUpdate(authEntity.id, authEntity)
     return authEntity
   }
 
   async getAuthEntityByAccessToken(token: string) {
     return this.authRepo.findOne({
-      where: {
-        accessToken: token,
-      },
-      cache: {
-        id: AuthCacheKey.QueryAccessToken,
-        milliseconds: 10 * 1000 * 60,
-      },
+      accessToken: token,
     })
   }
 
@@ -159,18 +153,44 @@ export class AuthService {
 
   private async _revokeAllTokenByUserId(id: string) {
     const authEntities = await this.authRepo.find({
-      select: {
-        id: true,
-      },
-      where: {
-        userId: id,
+      user: {
+        id: id,
       },
     })
-    await this.authRepo.remove(authEntities)
-    await this._removeQueryCache()
+    await this.authRepo.nativeDelete(authEntities)
   }
 
-  private _removeQueryCache() {
-    return this.dataSource.queryResultCache?.remove([AuthCacheKey.QueryAccessToken])
+  async getUserFromAccessToken(accessToken: string) {
+    const payload = this.jwtService.decode(accessToken) as JwtPayloadWithOption | null
+
+    if (!payload || !payload.exp) throw new UnauthorizedException()
+
+    const authEntity = await this.getAuthEntityByAccessToken(accessToken)
+
+    if (!authEntity) {
+      throw new UnauthorizedException()
+    }
+
+    if (dayjs(payload.exp * 1000).isBefore(dayjs())) {
+      throw new UnauthorizedException()
+    }
+
+    return this.userRepo.findOne({
+      id: payload.id,
+    })
+  }
+
+  async logout(ctx: GraphQLContext) {
+    const accessToken = ExtractJwt.fromAuthHeaderAsBearerToken()(ctx.req)
+
+    const auth = await this.authRepo.findOne({
+      accessToken,
+    })
+
+    if (!auth) throw new UnauthorizedException('Token is invalid')
+
+    await this.em.nativeDelete(AuthEntity, auth)
+
+    return true
   }
 }

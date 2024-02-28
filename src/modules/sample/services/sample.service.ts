@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common'
-import { SampleRepository } from 'src/modules/sample/repositories/sample.repository'
+import { EntityManager, FilterQuery } from '@mikro-orm/core'
+import { SampleEntity } from 'src/modules/sample/entities/sample.entity'
 
 @Injectable()
 export class SampleService {
-  constructor(private readonly sampleRepo: SampleRepository) {}
+  constructor(private readonly em: EntityManager) {}
 
-  async findOne() {
-    return this.sampleRepo.find()
+  async findWhere(where?: FilterQuery<SampleEntity>) {
+    return this.em.find(SampleEntity, where || {})
   }
 }

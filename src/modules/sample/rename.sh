@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 NAME=${PWD##*/}
 find . -type f -name "sample*.*" | while read FILE; do
   newfile="${FILE//sample/$NAME}"

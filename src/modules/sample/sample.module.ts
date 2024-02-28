@@ -1,12 +1,11 @@
 import { Module } from '@nestjs/common'
 import { SampleService } from 'src/modules/sample/services/sample.service'
 import { SampleResolver } from 'src/modules/sample/resolvers/sample.resolver'
-import { SampleRepository } from 'src/modules/sample/repositories/sample.repository'
-import { TypeormExModule } from 'src/typeorm-ex/typeorm-ex.module'
+import { OrmModule } from 'src/modules/orm/orm.module'
 
 @Module({
-  controllers: [],
-  imports: [TypeormExModule.forCustomRepository([SampleRepository])],
+  imports: [OrmModule],
   providers: [SampleService, SampleResolver],
+  exports: [SampleService],
 })
 export class SampleModule {}

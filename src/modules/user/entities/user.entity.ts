@@ -1,23 +1,31 @@
 import { HideField, ObjectType } from '@nestjs/graphql'
 import { CommonEntity } from 'src/modules/common/entities/common.entity'
-import { Column, Entity } from 'typeorm'
+import { Entity, Property, Unique, OneToMany, Collection } from '@mikro-orm/core'
+import { UserRepository } from '../repositories/user.repository'
+import { AuthEntity } from '../../auth/entities/auth.entity'
 
 @ObjectType()
 @Entity({
-  name: 'users',
+  tableName: 'users',
+  repository: () => UserRepository,
 })
 export class UserEntity extends CommonEntity {
-  @Column({ unique: true })
-  username: string
+  @Property({ nullable: true })
+  username?: string
 
-  @Column({ nullable: true, unique: true })
-  email?: string
+  @Property()
+  email: string
 
   @HideField()
-  @Column({ nullable: true })
+  @Property()
   password?: string
 
   @HideField()
-  @Column({ nullable: true })
+  @Property()
   passwordSalt?: string
+
+  @HideField()
+  @OneToMany(() => AuthEntity, (auth) => auth.user)
+  auths = new Collection<AuthEntity>(this)
+  // [EntityRepositoryType]?: UserRepository
 }
