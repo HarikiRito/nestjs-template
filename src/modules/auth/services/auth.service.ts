@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { AuthRepository } from 'src/modules/auth/repositories/auth.repository'
 import { UserService } from 'src/modules/user/services/user.service'
@@ -14,11 +14,16 @@ import { ApolloError } from 'apollo-server-express'
 import { purgeObject } from 'src/utils/object'
 import { GraphQLContext } from 'src/modules/common/decorators/common.decorator'
 import { Platform } from 'src/modules/auth/dtos/auth.enum'
+import { UserRepository } from '../../user/repositories/user.repository'
+import { ExtractJwt } from 'passport-jwt'
+import { EntityManager } from '@mikro-orm/core'
 
 @Injectable()
 export class AuthService {
   constructor(
+    private readonly em: EntityManager,
     private readonly authRepo: AuthRepository,
+    private readonly userRepo: UserRepository,
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
   ) {}
@@ -119,7 +124,7 @@ export class AuthService {
       refreshToken: refreshToken,
     })
 
-    // If user use an invalid refresh token, we will throw an error and removing all the token issue for that user
+    // If user uses an invalid refresh token, we will throw an error and removing all the token issue for that user
     if (!authEntity) {
       // await this._revokeAllTokenByUserId(data.id)
       throw new ApolloError(invalidRefreshTokenError)
@@ -153,5 +158,39 @@ export class AuthService {
       },
     })
     await this.authRepo.nativeDelete(authEntities)
+  }
+
+  async getUserFromAccessToken(accessToken: string) {
+    const payload = this.jwtService.decode(accessToken) as JwtPayloadWithOption | null
+
+    if (!payload || !payload.exp) throw new UnauthorizedException()
+
+    const authEntity = await this.getAuthEntityByAccessToken(accessToken)
+
+    if (!authEntity) {
+      throw new UnauthorizedException()
+    }
+
+    if (dayjs(payload.exp * 1000).isBefore(dayjs())) {
+      throw new UnauthorizedException()
+    }
+
+    return this.userRepo.findOne({
+      id: payload.id,
+    })
+  }
+
+  async logout(ctx: GraphQLContext) {
+    const accessToken = ExtractJwt.fromAuthHeaderAsBearerToken()(ctx.req)
+
+    const auth = await this.authRepo.findOne({
+      accessToken,
+    })
+
+    if (!auth) throw new UnauthorizedException('Token is invalid')
+
+    await this.em.nativeDelete(AuthEntity, auth)
+
+    return true
   }
 }

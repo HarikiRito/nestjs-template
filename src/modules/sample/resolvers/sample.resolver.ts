@@ -7,7 +7,7 @@ export class SampleResolver {
   constructor(private readonly sampleService: SampleService) {}
 
   @Query(() => [SampleEntity])
-  async sample(@Args('id') id: number) {
-    return this.sampleService.findOne()
+  async sample(@Args('id') id: string) {
+    return this.sampleService.findWhere()
   }
 }

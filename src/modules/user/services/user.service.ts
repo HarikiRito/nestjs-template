@@ -15,20 +15,9 @@ export class UserService {
     private readonly em: EntityManager,
   ) {}
 
-  async findByUsername(username: string) {
-    return this.userRepo.findOne({
-      username,
-    })
-  }
-
   async findByEmail(email: string) {
     return this.userRepo.findOne({
       email,
-    })
-  }
-  async findById(id: string) {
-    return this.userRepo.findOne({
-      id,
     })
   }
 

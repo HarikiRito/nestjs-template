@@ -13,10 +13,10 @@ export class AuthEntity extends CommonEntity {
   @Property({ nullable: true })
   deviceId?: string
 
-  @Property({ type: 'varchar', length: 500 })
+  @Property({ type: 'text' })
   accessToken: string
 
-  @Property({ type: 'varchar', length: 500 })
+  @Property({ type: 'text' })
   refreshToken: string
 
   @Property({ nullable: true })
@@ -27,6 +27,4 @@ export class AuthEntity extends CommonEntity {
     cascade: [Cascade.REMOVE],
   })
   user: UserEntity
-
-  // [EntityRepositoryType]?: AuthRepository
 }

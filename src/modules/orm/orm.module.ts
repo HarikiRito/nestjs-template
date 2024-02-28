@@ -5,6 +5,7 @@ import { SampleEntity } from '../sample/entities/sample.entity'
 import { UserEntity } from '../user/entities/user.entity'
 import { AuthEntity } from '../auth/entities/auth.entity'
 import { mikroOrmRoot } from '../../mikro-orm.config'
+import { OrmService } from './services/orm.service'
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { mikroOrmRoot } from '../../mikro-orm.config'
       entities: [SampleEntity, UserEntity, AuthEntity],
     }),
   ],
+  providers: [OrmService],
   exports: [MikroOrmModule],
 })
 export class OrmModule {}
