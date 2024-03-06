@@ -193,4 +193,12 @@ export class AuthService {
 
     return true
   }
+
+  async sum(a: number, b: number) {
+    const s = await this.em.findOne(AuthEntity, {
+      id: '1',
+    })
+    console.log('auth.service_sum_201', s)
+    return a + b
+  }
 }

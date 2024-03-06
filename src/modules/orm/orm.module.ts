@@ -7,13 +7,11 @@ import { AuthEntity } from '../auth/entities/auth.entity'
 import { mikroOrmRoot } from '../../mikro-orm.config'
 import { OrmService } from './services/orm.service'
 
+export const mikroOrmForFeature = MikroOrmModule.forFeature({
+  entities: [SampleEntity, UserEntity, AuthEntity],
+})
 @Module({
-  imports: [
-    mikroOrmRoot,
-    MikroOrmModule.forFeature({
-      entities: [SampleEntity, UserEntity, AuthEntity],
-    }),
-  ],
+  imports: [mikroOrmRoot, mikroOrmForFeature],
   providers: [OrmService],
   exports: [MikroOrmModule],
 })
