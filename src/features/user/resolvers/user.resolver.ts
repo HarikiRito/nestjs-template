@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common'
 import { Query, Resolver } from '@nestjs/graphql'
 
-import { AuthUser, CurrentUser } from '@/common/decorators/current-user.decorator'
+import type { AuthUser } from '@/common/decorators/current-user.decorator'
+
+import { CurrentUser } from '@/common/decorators/current-user.decorator'
 import { Auth } from '@/common/decorators/require-auth.decorator'
 
 import { UserType } from '../types/user.type'

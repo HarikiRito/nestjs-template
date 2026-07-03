@@ -52,5 +52,5 @@ export function Paginated<T>(classRef: Type<T>): Type<PaginatedResponse<T>> {
     totalPages!: number
   }
 
-  return PaginatedType as Type<PaginatedResponse<T>>
+  return PaginatedType
 }

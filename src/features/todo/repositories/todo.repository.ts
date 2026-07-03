@@ -33,7 +33,7 @@ export class TodoRepository extends BaseRepository<TodoEntity> {
    * @throws Error if todo not found
    */
   async markCompleted(id: number): Promise<TodoEntity> {
-    const todo = await this.findOneOrFail({ id })
+    const todo = await this.findOneOrThrow({ id })
     todo.completed = true
     await this.em.flush()
     return todo
@@ -49,7 +49,7 @@ export class TodoRepository extends BaseRepository<TodoEntity> {
    * @throws Error if todo not found
    */
   async markPending(id: number): Promise<TodoEntity> {
-    const todo = await this.findOneOrFail({ id })
+    const todo = await this.findOneOrThrow({ id })
     todo.completed = false
     await this.em.flush()
     return todo

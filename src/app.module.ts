@@ -10,8 +10,10 @@ import { CommonModule } from '@/common/common.module'
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard'
 import { AppConfigModule } from '@/config/config.module'
 import { DatabaseModule } from '@/database/database.module'
+import { AuthModule } from '@/features/auth/auth.module'
 import { TodoModule } from '@/features/todo/todo.module'
 import { UserModule } from '@/features/user/user.module'
+import { RedisModule } from '@/providers/redis/redis.module'
 
 @Module({
   controllers: [AppController],
@@ -31,7 +33,11 @@ import { UserModule } from '@/features/user/user.module'
       sortSchema: true, // Sort schema alphabetically for consistency
     }),
 
+    // Provider modules
+    RedisModule,
+
     // Feature modules
+    AuthModule,
     TodoModule,
     UserModule,
   ],

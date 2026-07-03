@@ -27,6 +27,14 @@ export class AppConfigService {
     return this.env.CORS_ORIGIN
   }
 
+  get jwtAccessExpiry(): string {
+    return this.env.JWT_ACCESS_EXPIRY
+  }
+
+  get jwtRefreshExpiry(): string {
+    return this.env.JWT_REFRESH_EXPIRY
+  }
+
   /**
    * Database configuration
    * @returns Database connection details
@@ -84,6 +92,10 @@ export class AppConfigService {
    */
   get port(): number {
     return this.env.PORT
+  }
+
+  get redisUrl(): string {
+    return this.env.REDIS_URL
   }
 
   private readonly env: Env = env

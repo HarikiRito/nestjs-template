@@ -1,0 +1,3 @@
+{
+  "allowedBuiltDependencies": ["@apollo/protobufjs", "@swc/core", "argon2"]
+}

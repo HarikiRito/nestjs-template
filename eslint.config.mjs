@@ -1,7 +1,6 @@
 // @ts-check
 import eslint from '@eslint/js'
 import biome from 'eslint-config-biome'
-import perfectionist from 'eslint-plugin-perfectionist'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
@@ -12,7 +11,6 @@ export default [
   eslint.configs.recommended,
   ...tseslint.configs.strictTypeChecked,
   ...tseslint.configs.stylisticTypeChecked,
-  perfectionist.configs['recommended-natural'],
   {
     languageOptions: {
       globals: {

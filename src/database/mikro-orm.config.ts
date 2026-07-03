@@ -1,10 +1,11 @@
-import { Migrator } from "@mikro-orm/migrations";
-import { PostgreSqlDriver } from "@mikro-orm/postgresql";
-import { defineConfig } from "@mikro-orm/postgresql";
-import { SeedManager } from "@mikro-orm/seeder";
-import { join } from "path";
+import { Migrator } from '@mikro-orm/migrations'
+import { PostgreSqlDriver } from '@mikro-orm/postgresql'
+import { defineConfig } from '@mikro-orm/postgresql'
+import { TsMorphMetadataProvider } from '@mikro-orm/reflection'
+import { SeedManager } from '@mikro-orm/seeder'
+import { join } from 'node:path'
 
-import { env } from "@/config/env.schema";
+import { env } from '@/config/env.schema'
 
 /**
  * MikroORM configuration with type-safe environment variables
@@ -17,60 +18,72 @@ import { env } from "@/config/env.schema";
  * 3. Different DB: Set separate DATABASE_URI pointing to different database
  */
 export default defineConfig({
-	// Database connection
-	clientUrl: env.DATABASE_URI,
+  // Database connection
+  clientUrl: env.DATABASE_URI,
 
-	// Debug mode (only in development)
-	debug: env.NODE_ENV !== "production",
+  // Debug mode (only in development)
+  debug: env.NODE_ENV !== 'production',
 
-	// Discovery configuration
-	discovery: {
-		alwaysAnalyseProperties: false,
-		requireEntitiesArray: false,
-		warnWhenNoEntities: false,
-	},
+  // Discovery configuration
+  discovery: {
+    warnWhenNoEntities: false,
+  },
 
-	driver: PostgreSqlDriver,
-	// Entity configuration
-	// When using autoLoadEntities in NestJS, no need to specify entities here
-	// Entities are discovered via forFeature() calls in modules
+  driver: PostgreSqlDriver,
 
-	// Entity discovery using compiled .js files (prevents duplicates)
-	// Pattern matches: common/entities/*.js and features/**/entities/*.js
-	entities: ["./dist/**/*.entity.js"],
-	entitiesTs: ["./src/**/*.entity.ts"],
+  // Timezone handling (reviewed for MikroORM v7 upgrade).
+  //
+  // MikroORM v7 defaults `forceUtcTimezone` to `true` for SQL drivers (v6 left it
+  // off). We set it explicitly here to make the behavior intentional rather than an
+  // implicit default. This is safe for this app: every `datetime` column
+  // (BaseEntity.createdAt/updatedAt on all entities) is used only
+  // as an absolute point in time — comparisons are Date-instant vs Date-instant
+  // (e.g. `record.expiresAt < new Date()`), and all API serialization goes through
+  // `new Date().toISOString()`, which is UTC regardless of this setting. No code
+  // relies on local/non-UTC datetime handling, so forcing UTC changes nothing
+  // observable while keeping stored timestamps unambiguous.
+  forceUtcTimezone: true,
 
-	// Extensions
-	extensions: [Migrator, SeedManager],
+  // Entity discovery using compiled .js files (prevents duplicates)
+  // Pattern matches: common/entities/*.js and features/**/entities/*.js
+  entities: ['./dist/**/*.entity.js'],
+  entitiesTs: ['./src/**/*.entity.ts'],
 
-	// Migration configuration
-	migrations: {
-		allOrNothing: true,
-		disableForeignKeys: false,
-		dropTables: false,
-		emit: "ts",
-		glob: "!(*.d).{js,ts}",
-		path: join(__dirname, "../database/migrations"),
-		pathTs: join(__dirname, "../database/migrations"),
-		safe: true,
-		snapshot: true,
-		transactional: true,
-	},
+  // Extensions
+  extensions: [Migrator, SeedManager],
 
-	// Pool configuration for better performance
-	pool: {
-		max: 10,
-		min: 2,
-	},
+  // Migration configuration
+  migrations: {
+    allOrNothing: true,
+    disableForeignKeys: false,
+    dropTables: false,
+    emit: 'ts',
+    glob: '!(*.d).{js,ts}',
+    path: join(__dirname, '../database/migrations'),
+    pathTs: join(__dirname, '../database/migrations'),
+    safe: true,
+    snapshot: true,
+    transactional: true,
+  },
 
-	schema: env.DATABASE_SCHEMA,
+  metadataProvider: TsMorphMetadataProvider,
 
-	// Seeder configuration
-	seeder: {
-		defaultSeeder: "DatabaseSeeder",
-		emit: "ts",
-		glob: "!(*.d).{js,ts}",
-		path: join(__dirname, "../database/seeders"),
-		pathTs: join(__dirname, "../database/seeders"),
-	},
-});
+  // Pool configuration for better performance
+  pool: {
+    max: 10,
+    min: 2,
+  },
+
+  preferTs: true,
+
+  schema: env.DATABASE_SCHEMA,
+
+  // Seeder configuration
+  seeder: {
+    defaultSeeder: 'DatabaseSeeder',
+    emit: 'ts',
+    glob: '!(*.d).{js,ts}',
+    path: join(__dirname, '../database/seeders'),
+    pathTs: join(__dirname, '../database/seeders'),
+  },
+})

@@ -1,0 +1,10 @@
+allowBuilds:
+  '@apollo/protobufjs': true
+  '@nestjs/core': true
+  '@swc/core': true
+  argon2: true
+onlyBuiltDependencies:
+  - '@apollo/protobufjs'
+  - '@nestjs/core'
+  - '@swc/core'
+  - argon2

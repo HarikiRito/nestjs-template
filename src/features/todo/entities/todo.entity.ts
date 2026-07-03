@@ -1,4 +1,4 @@
-import { Entity, Property } from '@mikro-orm/core'
+import { Entity, Property } from '@mikro-orm/decorators/legacy'
 import { Field, ID, ObjectType } from '@nestjs/graphql'
 
 import { BaseEntity } from '@/common/entities/base.entity'

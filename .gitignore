@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+.pnpm-store/
 
 # Build output
 dist/
@@ -30,4 +31,11 @@ yarn-error.log*
 
 # MikroORM temp files
 temp/
+
+# Test results
+test-results/
+
+# Local dev environment overrides (use docker-compose.local*.yml for personal setups)
+docker-compose.local*.yml
+# Claude Code
 .claude
